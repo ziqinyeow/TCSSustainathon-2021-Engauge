@@ -11,10 +11,10 @@
   },
 
   "extends": [
-    "airbnb",
-    "airbnb-typescript",
-    "next/core-web-vitals",
-    "plugin:prettier/recommended"
+    // "airbnb",
+    // "airbnb-typescript",
+    "next/core-web-vitals"
+    // "plugin:prettier/recommended"
   ],
 
   "rules": {

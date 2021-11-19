@@ -111,3 +111,19 @@ html {
   -ms-transform: rotate(3deg) translate(0px, -4px);
   transform: rotate(3deg) translate(0px, -4px);
 }
+
+.chat {
+  grid-template-rows: auto 100px;
+}
+
+.chatbox {
+  ::-webkit-scrollbar {
+    width: 0px !important;
+  }
+  ::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: black !important;
+  }
+}

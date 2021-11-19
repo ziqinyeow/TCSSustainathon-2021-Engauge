@@ -6,7 +6,8 @@
       "@/layouts/*": ["layouts/*"],
       "@/styles/*": ["styles/*"],
       "@/public/*": ["public/*"],
-      "@/lib/*": ["lib/*"]
+      "@/lib/*": ["lib/*"],
+      "@/firebase/*": ["firebase/*"]
     },
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],

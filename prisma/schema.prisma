@@ -1,55 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider        = "prisma-client-js"
+model Teacher {
+  id      String    @id @default(cuid())
+  name    String?
+  email   String    @unique
+  session Session[]
 }
 
-model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-  oauth_token_secret String?
-  oauth_token        String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
+model Student {
+  id         String    @id @default(cuid())
+  name       String?
+  email      String    @unique
+  password   String?
+  answer     Answer[]
+  session    Session[] @relation(fields: [session_id], references: [id])
+  session_id String?
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  name        String
+  class_code  String
+  description String?
+  startedAt   DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  teacher     Teacher   @relation(fields: [email], references: [email])
+  email       String
+  student     Student[]
+  quiz        Quiz?
+  chat        Chatroom?
 }
 
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
+model Quiz {
+  id         String     @id @default(cuid())
+  name       String
+  createdAt  DateTime   @default(now())
+  question   Question[]
+  session    Session    @relation(fields: [session_id], references: [id])
+  session_id String     @unique
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+model Question {
+  id           String    @id @default(cuid())
+  question     String
+  answerScheme String
+  createdAt    DateTime  @default(now())
+  realisedAt   DateTime?
+  quiz         Quiz?     @relation(fields: [session_id], references: [session_id])
+  session_id   String?
+  answer       Answer[] // this is the answer given by student
+}
 
-  @@unique([identifier, token])
+model Answer {
+  id          String    @id @default(cuid())
+  answer      String
+  submittedAt DateTime  @default(now())
+  question    Question? @relation(fields: [question_id], references: [id])
+  question_id String?
+  student     Student?  @relation(fields: [student_id], references: [id])
+  student_id  String?
+}
+
+model Chatroom {
+  id         String    @id @default(cuid())
+  name       String
+  message    Message[]
+  session    Session   @relation(fields: [session_id], references: [id])
+  session_id String    @unique
+}
+
+model Message {
+  id          String    @id @default(cuid())
+  sender      String?
+  text        String?
+  chatroom    Chatroom? @relation(fields: [chatroom_id], references: [id])
+  chatroom_id String?
 }

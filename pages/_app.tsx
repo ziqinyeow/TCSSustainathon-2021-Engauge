@@ -1,12 +1,16 @@
 import "../styles/globals.css";
-import { SessionProvider } from "next-auth/react";
 import type { AppProps } from "next/app";
+import "../firebase/config";
+import { AuthProvider } from "../firebase/auth/hook/auth";
+import AuthStateChanged from "../firebase/auth/layout/AuthStateChanged";
 
-function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+function MyApp({ Component, pageProps: { ...pageProps } }: AppProps) {
   return (
-    <SessionProvider session={session}>
-      <Component {...pageProps} />
-    </SessionProvider>
+    <AuthProvider>
+      <AuthStateChanged>
+        <Component {...pageProps} />
+      </AuthStateChanged>
+    </AuthProvider>
   );
 }
 
