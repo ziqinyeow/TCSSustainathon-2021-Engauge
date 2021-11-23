@@ -42,3 +42,27 @@ export default async function handler(
 //      "sender": "",
 //      "text": "",
 // }
+
+// const sendRequest = async () => {
+//   const response = await fetch(
+//     `https://sustainathon.vercel.app/api/db/message/get/?session_id=${sessionID}`
+//   );
+
+//   const dt = await response.json();
+
+//   setData(dt.chat);
+// };
+
+// let timer;
+
+// useEffect(() => {
+//   sendRequest();
+
+//   timer = setInterval(() => {
+//     sendRequest();
+//   }, 10000);
+
+//   return () => {
+//     clearInterval(timer);
+//   };
+// }, []);

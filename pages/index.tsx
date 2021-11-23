@@ -11,8 +11,17 @@ import useAuth from "../firebase/auth/hook/auth";
 
 function Home() {
   const { user }: any = useAuth();
+  const [searchValue, setSearchValue] = useState("");
   const [sessionCard, setSessionCard] = useState(0);
   const [sessions, setSessions] = useState<Session[]>();
+
+  const filteredSessions = sessions
+    ?.sort(
+      (a, b) => Number(new Date(b.startedAt)) - Number(new Date(a.startedAt))
+    )
+    .filter((session) =>
+      session.class_code.toLowerCase().includes(searchValue.toLowerCase())
+    );
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -38,68 +47,7 @@ function Home() {
       </Head>
       <Layout>
         <h2 className="mb-7">Dashboard</h2>
-        <div className="grid w-full gap-5 md:grid-cols-2 lg:grid-cols-4">
-          <div className="w-full p-4 bg-white rounded-md">
-            <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path d="M4 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H4zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
-              </svg>
-            </div>
-            <h4 className="font-medium">Total Students</h4>
-            <h5 className="text-sm text-gray-500">10 days ago</h5>
-          </div>
-          <div className="w-full p-4 bg-white rounded-md">
-            <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm5.793 8.914l3.535-3.535 1.415 1.414-4.95 4.95-3.536-3.536 1.415-1.414 2.12 2.121z" />
-              </svg>
-            </div>
-            <h4 className="font-medium">Present</h4>
-            <h5 className="text-sm text-gray-500">10 days ago</h5>
-          </div>
-          <div className="w-full p-4 bg-white rounded-md">
-            <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm7 6.586l2.121-2.122 1.415 1.415L20.414 19l2.122 2.121-1.415 1.415L19 20.414l-2.121 2.122-1.415-1.415L17.586 19l-2.122-2.121 1.415-1.415L19 17.586z" />
-              </svg>
-            </div>
-            <h4 className="font-medium">Absent</h4>
-            <h5 className="text-sm text-gray-500">10 days ago</h5>
-          </div>
-          <div className="w-full p-4 bg-white rounded-md">
-            <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path d="M12 14v2a6 6 0 0 0-6 6H4a8 8 0 0 1 8-8zm0-1c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.828 10.071L18 24l-2.828-2.929c-1.563-1.618-1.563-4.24 0-5.858a3.904 3.904 0 0 1 5.656 0c1.563 1.618 1.563 4.24 0 5.858zm-1.438-1.39c.813-.842.813-2.236 0-3.078a1.904 1.904 0 0 0-2.78 0c-.813.842-.813 2.236 0 3.079L18 21.12l1.39-1.44z" />
-              </svg>
-            </div>
-            <h4 className="font-medium">Late Comer</h4>
-            <h5 className="text-sm text-gray-500">10 days ago</h5>
-          </div>
-        </div>
+
         <div className="w-full mt-10">
           <div className="w-full">
             <div className="flex mb-5">
@@ -110,6 +58,7 @@ function Home() {
                 type="text"
                 className="w-full px-4 py-2 mr-4 transition-all duration-200 border rounded-lg hover:bg-gray-100 focus:bg-gray-100"
                 placeholder="Search"
+                onChange={(e) => setSearchValue(e.target.value)}
               />
               <button
                 onClick={() => setSessionCard(1)}
@@ -134,9 +83,9 @@ function Home() {
               />
             </div>
             <div className="">
-              {sessions && sessions.length !== 0 ? (
+              {filteredSessions && filteredSessions.length !== 0 ? (
                 <div>
-                  {sessions?.map((session) => (
+                  {filteredSessions?.map((session) => (
                     <Link key={session.id} href={`/session/${session.id}`}>
                       <a>
                         <div className="p-6 mb-4 transition-all duration-200 bg-white rounded hover:bg-gray-100">

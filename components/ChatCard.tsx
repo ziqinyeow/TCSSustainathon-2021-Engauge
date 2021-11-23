@@ -1,15 +1,34 @@
 import { Message } from ".prisma/client";
-import useSWR from "swr";
-import fetcher from "@/lib/fetcher";
 import useAuth from "../firebase/auth/hook/auth";
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import ScrollableFeed from "react-scrollable-feed";
 
 const Card = ({ session_id, chatCard, setChatCard }: any) => {
-  const { data } = useSWR(
-    `/api/db/message/get/?session_id=${session_id}`,
-    fetcher
-  );
+  const [data, setData] = useState();
+  const sendRequest = async () => {
+    const response = await fetch(
+      `/api/db/message/get/?session_id=${session_id}`
+    );
+
+    const res = await response.json();
+
+    setData(res.chat);
+  };
+
+  let timer: any;
+
+  useEffect(() => {
+    sendRequest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    timer = setInterval(() => {
+      sendRequest();
+    }, 10000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
   const { user }: any = useAuth();
   const [form, setForm] = useState<Message>();
   const handleChange = (
@@ -65,14 +84,19 @@ const Card = ({ session_id, chatCard, setChatCard }: any) => {
             <div className="grid h-full gap-5 chat chatbox">
               <div className="w-full h-full p-6 overflow-auto border rounded-lg">
                 <ScrollableFeed>
-                  {data?.chat?.map((message: Message) => (
-                    <div key={message.id} className="mb-4">
-                      <h4 className="font-bold">
-                        {message?.sender === user?.email && "You"}
-                      </h4>
-                      <h5>{message?.text}</h5>
-                    </div>
-                  ))}
+                  {
+                    // @ts-ignore
+                    data?.map((message: Message) => (
+                      <div key={message.id} className="mb-4">
+                        <h4 className="font-bold">
+                          {message?.sender === user?.email
+                            ? "You"
+                            : "Anonymous"}
+                        </h4>
+                        <h5>{message?.text}</h5>
+                      </div>
+                    ))
+                  }
                 </ScrollableFeed>
               </div>
               <form className="" onSubmit={handleSubmit}>

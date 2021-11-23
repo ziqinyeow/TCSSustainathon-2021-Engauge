@@ -2,14 +2,14 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["dataProxy"]
+  provider = "prisma-client-js"
+  // previewFeatures = ["dataProxy"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // shadowDatabaseUrl = env("SHADOW_DB_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DB_URL")
 }
 
 model Teacher {
@@ -20,27 +20,38 @@ model Teacher {
 }
 
 model Student {
-  id         String    @id @default(cuid())
+  id         String     @id @default(cuid())
   name       String?
-  email      String    @unique
+  email      String     @unique
   password   String?
   answer     Answer[]
-  session    Session[] @relation(fields: [session_id], references: [id])
+  session    Session[]  @relation(fields: [session_id], references: [id])
   session_id String?
+  location   Location[]
+}
+
+model Location {
+  id         String   @id @default(cuid())
+  longitude  String?
+  lattitude  String?
+  student    Student? @relation(fields: [student_id], references: [id])
+  student_id String?
 }
 
 model Session {
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   name        String
   class_code  String
   description String?
-  startedAt   DateTime  @default(now())
-  createdAt   DateTime  @default(now())
-  teacher     Teacher   @relation(fields: [email], references: [email])
+  startedAt   DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  teacher     Teacher    @relation(fields: [email], references: [email])
   email       String
   student     Student[]
   quiz        Quiz?
   chat        Chatroom?
+  end         Boolean    @default(false)
+  Feedback    Feedback[]
 }
 
 model Quiz {
@@ -87,4 +98,12 @@ model Message {
   text        String?
   chatroom    Chatroom? @relation(fields: [chatroom_id], references: [id])
   chatroom_id String?
+}
+
+model Feedback {
+  id         String  @id @default(cuid())
+  rating     Int
+  text       String
+  session    Session @relation(fields: [session_id], references: [id])
+  session_id String
 }

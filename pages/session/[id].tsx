@@ -10,6 +10,8 @@ import { prisma } from "@/lib/prisma";
 import Layout from "@/layouts/Layout";
 import CreateQuestionCard from "@/components/CreateQuestionCard";
 import ChatCard from "@/components/ChatCard";
+import EndSession from "@/components/EndSession";
+import AddStudentCard from "@/components/AddStudentCard";
 
 // @ts-ignore
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
@@ -48,12 +50,27 @@ function SessionPage({ session }: any) {
   const router = useRouter();
   const [questionCard, setQuestionCard] = useState(0);
   const [chatCard, setChatCard] = useState(0);
+  const [endSessionCard, setEndSessionCard] = useState(0);
+  const [addStudentCard, setAddStudentCard] = useState(0);
+  const [searchValue, setSearchValue] = useState("");
+  const [students, setStudents] = useState<Student[] | [] | undefined>();
+
+  const filteredStudents = students?.filter(
+    (student) =>
+      // @ts-ignore
+      student?.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+      student?.email.toLowerCase().includes(searchValue.toLowerCase())
+  );
 
   useEffect(() => {
     if (session?.email !== user.email) {
       router.push("/");
     }
   }, [router, session?.email, user.email]);
+
+  useEffect(() => {
+    setStudents(session?.student);
+  }, [session?.student]);
 
   return (
     <div>
@@ -84,14 +101,35 @@ function SessionPage({ session }: any) {
                 <path d="M6.455 19L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455zm-.692-2H20V5H4v13.385L5.763 17zM11 10h2v2h-2v-2zm-4 0h2v2H7v-2zm8 0h2v2h-2v-2z" />
               </svg>
             </button>
+            <button
+              onClick={() => {
+                setEndSessionCard(1);
+              }}
+              className="p-2 transition-all duration-200 bg-white rounded-lg hover:bg-gray-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path d="M9 1v2h6V1h2v2h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4V1h2zm11 9H4v9h16v-9zm-4.964 1.136l1.414 1.414-4.95 4.95-3.536-3.536L9.38 12.55l2.121 2.122 3.536-3.536zM7 5H4v3h16V5h-3v1h-2V5H9v1H7V5z" />
+              </svg>
+            </button>
             <ChatCard
               session_id={session?.id}
               chatCard={chatCard}
               setChatCard={setChatCard}
             />
+            <EndSession
+              session_id={session?.id}
+              endSessionCard={endSessionCard}
+              setEndSessionCard={setEndSessionCard}
+            />
           </div>
         </div>
-        <div className="grid w-full gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid w-full gap-5 md:grid-cols-3">
           <div className="w-full p-4 bg-white rounded-md">
             <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
               <svg
@@ -105,7 +143,7 @@ function SessionPage({ session }: any) {
               </svg>
             </div>
             <h4 className="font-medium">Total Students</h4>
-            <h5 className="text-sm text-gray-500">10 days ago</h5>
+            <h2>{session?.student ? session?.student.length : "--"}</h2>
           </div>
           <div className="w-full p-4 bg-white rounded-md">
             <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
@@ -120,7 +158,7 @@ function SessionPage({ session }: any) {
               </svg>
             </div>
             <h4 className="font-medium">Present</h4>
-            <h5 className="text-sm text-gray-500">10 days ago</h5>
+            <h2>{session?.student ? session?.student.length : "--"}</h2>
           </div>
           <div className="w-full p-4 bg-white rounded-md">
             <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
@@ -135,34 +173,23 @@ function SessionPage({ session }: any) {
               </svg>
             </div>
             <h4 className="font-medium">Absent</h4>
-            <h5 className="text-sm text-gray-500">10 days ago</h5>
-          </div>
-          <div className="w-full p-4 bg-white rounded-md">
-            <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-              >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path d="M12 14v2a6 6 0 0 0-6 6H4a8 8 0 0 1 8-8zm0-1c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm8.828 10.071L18 24l-2.828-2.929c-1.563-1.618-1.563-4.24 0-5.858a3.904 3.904 0 0 1 5.656 0c1.563 1.618 1.563 4.24 0 5.858zm-1.438-1.39c.813-.842.813-2.236 0-3.078a1.904 1.904 0 0 0-2.78 0c-.813.842-.813 2.236 0 3.079L18 21.12l1.39-1.44z" />
-              </svg>
-            </div>
-            <h4 className="font-medium">Late Comer</h4>
-            <h5 className="text-sm text-gray-500">10 days ago</h5>
+            <h2>--</h2>
           </div>
         </div>
-        <div className="grid w-full gap-10 mt-10 md:grid-cols-3">
+        <div className="grid w-full gap-10 my-10 md:grid-cols-3">
           <div className="md:col-span-2">
             <h3 className="mb-5 font-bold">Student List</h3>
-            <div className="flex gap-5 mb-10">
+            <div className="flex mb-10">
               <input
                 type="text"
-                className="w-full px-4 py-2 transition-all duration-200 border rounded-lg hover:bg-gray-100 focus:bg-gray-100"
+                className="w-full p-2 px-4 mr-3 transition-all duration-200 border rounded-lg hover:bg-gray-100 focus:bg-gray-100"
                 placeholder="Search"
+                onChange={(e) => setSearchValue(e.target.value)}
               />
-              <button className="p-2 text-white transition-all duration-200 bg-black border-2 border-black rounded-lg hover:bg-white hover:text-black">
+              <button
+                onClick={() => setAddStudentCard(1)}
+                className="p-3 text-black transition-all duration-200 bg-white rounded-lg hover:bg-gray-200"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -170,18 +197,20 @@ function SessionPage({ session }: any) {
                   height="24"
                 >
                   <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    fill="currentColor"
-                    d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"
-                  />
+                  <path d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm6 6v-3h2v3h3v2h-3v3h-2v-3h-3v-2h3z" />
                 </svg>
               </button>
+              <AddStudentCard
+                session_id={session?.id}
+                addStudentCard={addStudentCard}
+                setAddStudentCard={setAddStudentCard}
+              />
             </div>
             <div className="space-y-4">
-              {session?.student && session?.student?.length !== 0 ? (
+              {filteredStudents && filteredStudents.length !== 0 ? (
                 <div>
-                  {session?.student?.map((s: Student) => (
-                    <div key={s.id}>
+                  {filteredStudents.map((s: Student) => (
+                    <div key={s.id} className="mb-4">
                       <a
                         href={`https://mail.google.com/mail/?view=cm&fs=1&to=${s.email}`}
                         target="_blank"
@@ -203,7 +232,7 @@ function SessionPage({ session }: any) {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center w-full p-6 space-y-2 bg-white rounded-md min-h-[200px]">
+                <div className="flex flex-col items-center justify-center w-full min-h-[200px] p-6 space-y-2 bg-white rounded-md">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -248,7 +277,7 @@ function SessionPage({ session }: any) {
                 setQuestionCard={setQuestionCard}
               />
             </div>
-            <div className="">
+            <div className="h-full">
               {session?.quiz?.question &&
               session?.quiz?.question?.length !== 0 ? (
                 <div>
@@ -305,15 +334,19 @@ function SessionPage({ session }: any) {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center w-full p-6 space-y-2 text-gray-600 bg-white rounded-md min-h-28">
+                <div className="flex flex-col items-center justify-center w-full min-h-[288px] p-6 space-y-2 text-gray-600 bg-white rounded-md">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
                     width="48"
                     height="48"
+                    className="text-gray-300"
                   >
                     <path fill="none" d="M0 0h24v24H0z" />
-                    <path d="M15 5h2a2 2 0 0 1 2 2v8.17a3.001 3.001 0 1 1-2 0V7h-2v3l-4.5-4L15 2v3zM5 8.83a3.001 3.001 0 1 1 2 0v6.34a3.001 3.001 0 1 1-2 0V8.83zM6 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm12 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                    <path
+                      fill="currentColor"
+                      d="M15 5h2a2 2 0 0 1 2 2v8.17a3.001 3.001 0 1 1-2 0V7h-2v3l-4.5-4L15 2v3zM5 8.83a3.001 3.001 0 1 1 2 0v6.34a3.001 3.001 0 1 1-2 0V8.83zM6 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 12a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm12 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
+                    />
                   </svg>
                   <h4 className="font-bold">No question yet</h4>
                 </div>
