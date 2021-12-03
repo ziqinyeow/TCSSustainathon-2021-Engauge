@@ -36,6 +36,8 @@ model Location {
   lattitude  String?
   student    Student? @relation(fields: [student_id], references: [id])
   student_id String?
+  session    Session? @relation(fields: [session_id], references: [id])
+  session_id String?
 }
 
 model Session {
@@ -48,6 +50,7 @@ model Session {
   teacher     Teacher    @relation(fields: [email], references: [email])
   email       String
   student     Student[]
+  Location    Location[]
   quiz        Quiz?
   chat        Chatroom?
   end         Boolean    @default(false)
