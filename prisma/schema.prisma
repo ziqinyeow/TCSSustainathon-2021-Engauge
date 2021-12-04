@@ -78,13 +78,13 @@ model Question {
 }
 
 model Answer {
-  id          String    @id @default(cuid())
-  answer      String
-  submittedAt DateTime  @default(now())
-  question    Question? @relation(fields: [question_id], references: [id])
-  question_id String?
-  student     Student?  @relation(fields: [student_id], references: [id])
-  student_id  String?
+  id            String    @id @default(cuid())
+  answer        String
+  submittedAt   DateTime  @default(now())
+  question      Question? @relation(fields: [question_id], references: [id])
+  question_id   String?
+  student       Student?  @relation(fields: [student_email], references: [email])
+  student_email String?
 }
 
 model Chatroom {
