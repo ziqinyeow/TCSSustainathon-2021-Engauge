@@ -1,7 +1,10 @@
 import React from "react";
 import Link from "next/link";
+import useAuth from "@/firebase/auth/hook/auth";
 
 export default function Sidebar() {
+  const { user, logout }: any = useAuth();
+
   return (
     <div className="w-[80px] h-full p-4 flex flex-col items-center justify-between fixed bg-white">
       <div className="space-y-4">
@@ -70,17 +73,45 @@ export default function Sidebar() {
         </div>
       </div>
       <div className="mb-4 space-y-4">
-        <div className="p-2 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
+        {user?.photoURL ? (
+          <div className="flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              // width={100}
+              // height={100}
+              src={user.photoURL}
+              alt="user_profile"
+              className="object-cover rounded-full w-7 h-7"
+            />
+          </div>
+        ) : (
+          <div className="flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              // width={100}
+              // height={100}
+              src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxleHBsb3JlLWZlZWR8MXx8fGVufDB8fHx8&w=1000&q=80"
+              alt="user_profile"
+              className="object-cover w-8 h-8 rounded-full"
+            />
+          </div>
+        )}
+        {user && (
+          <div
+            onClick={logout}
+            className="p-2 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md"
           >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-1-5h2v2h-2v-2zm2-1.645V14h-2v-1.5a1 1 0 0 1 1-1 1.5 1.5 0 1 0-1.471-1.794l-1.962-.393A3.501 3.501 0 1 1 13 13.355z" />
-          </svg>
-        </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path d="M4 18h2v2h12V4H6v2H4V3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3zm2-7h7v2H6v3l-5-4 5-4v3z" />
+            </svg>
+          </div>
+        )}
         <div className="p-2 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
           <svg
             xmlns="http://www.w3.org/2000/svg"

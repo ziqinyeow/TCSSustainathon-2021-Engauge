@@ -3,7 +3,7 @@ import useAuth from "../firebase/auth/hook/auth";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import ScrollableFeed from "react-scrollable-feed";
 
-const Card = ({ session_id, chatCard, setChatCard }: any) => {
+const Card = ({ session_id, end, chatCard, setChatCard }: any) => {
   const [data, setData] = useState();
   const sendRequest = async () => {
     const response = await fetch(
@@ -102,10 +102,11 @@ const Card = ({ session_id, chatCard, setChatCard }: any) => {
               <form className="" onSubmit={handleSubmit}>
                 <input
                   type="text"
-                  placeholder="Type..."
+                  placeholder={end ? "Session ended" : "Type..."}
                   className="w-full px-4 py-2 mb-8 border rounded-md focus:outline-none focus:border-gray-400"
                   name="text"
                   onChange={handleChange}
+                  disabled={end}
                   required
                   autoComplete="off"
                 />

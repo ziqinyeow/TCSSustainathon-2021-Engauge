@@ -12,6 +12,8 @@ import CreateQuestionCard from "@/components/CreateQuestionCard";
 import ChatCard from "@/components/ChatCard";
 import EndSession from "@/components/EndSession";
 import AddStudentCard from "@/components/AddStudentCard";
+import BarChart from "@/components/BarChart";
+import CircularProgressBar from "@/components/CircularProgressBar";
 
 // @ts-ignore
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
@@ -39,7 +41,11 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
           message: true,
         },
       },
-      student: true,
+      student: {
+        include: {
+          location: true,
+        },
+      },
     },
   });
 
@@ -51,63 +57,166 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     };
   }
 
-  const temp: any = [];
+  const total_student = session?.student?.length;
+  const total_question = session?.quiz?.question?.length;
+  const ques_counter = Array.from(
+    { length: total_question },
+    (_, i) => `Question ${i + 1}`
+  );
+  const attendance: any = [];
+  const question_submission_rate: any[] = [];
+  const question_correctness_rate: any[] = [];
   session?.quiz?.question?.map(
     (ques: { answer: any[]; answerScheme: string }) => {
+      question_submission_rate.push(
+        (ques?.answer?.length / total_student) * 100
+      );
+      let correct = 0;
       ques?.answer?.map(
         (ans: { answer: string; student_email: any; email: any }) => {
           const email = ans?.student_email;
           if (ques?.answerScheme?.toLowerCase() === ans?.answer.toLowerCase()) {
+            correct++;
             if (
-              temp.findIndex((t: { email: any }) => t?.email === email) === -1
+              attendance.findIndex(
+                (t: { email: any }) => t?.email === email
+              ) === -1
             ) {
-              temp.push({
+              attendance.push({
                 email: ans?.student_email,
                 correct: 1,
-                total: 1,
+                submit: 1,
               });
             } else {
-              const idx = temp.findIndex(
+              const idx = attendance.findIndex(
                 (x: { email: any }) => x?.email === email
               );
               // @ts-ignore
-              temp[idx]?.correct = temp[idx]?.correct + 1;
+              attendance[idx]?.correct = attendance[idx]?.correct + 1;
               // @ts-ignore
-              temp[idx]?.total = temp[idx]?.total + 1;
+              attendance[idx]?.submit = attendance[idx]?.submit + 1;
             }
           } else {
             if (
-              temp.findIndex((t: { email: any }) => t?.email === email) === -1
+              attendance.findIndex(
+                (t: { email: any }) => t?.email === email
+              ) === -1
             ) {
-              temp.push({
+              attendance.push({
                 email: ans?.student_email,
                 correct: 0,
-                total: 1,
+                submit: 1,
               });
             } else {
-              const idx = temp.findIndex(
+              const idx = attendance.findIndex(
                 (x: { email: any }) => x?.email === email
               );
               // @ts-ignore
-              temp[idx]?.total = temp[idx]?.total + 1;
+              attendance[idx]?.submit = attendance[idx]?.submit + 1;
             }
           }
         }
       );
+      question_correctness_rate.push((correct / ques?.answer?.length) * 100);
     }
+  );
+
+  function std(array: any[]) {
+    if (!array || array.length === 0) {
+      return -1;
+    }
+    const n = array.length;
+
+    const lattitude_mean =
+      array.reduce((a: any, b: any) => a + Number(b?.lattitude), 0) / n;
+    const lattitude_std = Math.sqrt(
+      array
+        .map((x) => Math.pow(x?.lattitude - lattitude_mean, 2))
+        .reduce((a: any, b: any) => a + Number(b), 0) / n
+    );
+
+    const longitude_mean =
+      array.reduce((a: any, b: any) => a + Number(b?.longitude), 0) / n;
+    const longitude_std = Math.sqrt(
+      array
+        .map((x) => Math.pow(x?.longitude - longitude_mean, 2))
+        .reduce((a: any, b: any) => a + Number(b), 0) / n
+    );
+
+    return (lattitude_std + longitude_std) / 2;
+  }
+
+  const location: any = [];
+  const average = (array: any[]) =>
+    array.reduce((a: any, b: any) => a + b) / array.length;
+
+  session?.student?.map((stu: { location: any[]; email: any }) => {
+    const location_std = std(stu?.location);
+    if (location_std !== -1) {
+      location.push(location_std);
+    }
+    if (
+      attendance.findIndex((t: { email: any }) => t?.email === stu?.email) ===
+      -1
+    ) {
+      attendance.push({
+        email: stu?.email,
+        location_std,
+      });
+    } else {
+      const idx = attendance.findIndex(
+        (x: { email: any }) => x?.email === stu?.email
+      );
+      // @ts-ignore
+      attendance[idx]?.location_std = location_std;
+    }
+  });
+
+  const location_mean = average(location);
+
+  attendance?.map(
+    (q: {
+      submission_rate: number;
+      submit: number;
+      correctness_rate: number;
+      correct: number;
+      attend: boolean;
+      location_std: number;
+    }) => {
+      q.submission_rate = (q?.submit / session?.quiz?.question?.length) * 100;
+      q.correctness_rate = (q?.correct / q?.submit) * 100;
+      q.attend =
+        (q?.location_std < 0.001 && q?.location_std > -1) ||
+        q?.submission_rate === 100
+          ? true
+          : false;
+    }
+  );
+
+  const number_attend = attendance?.filter(
+    (a: { attend: boolean }) => a.attend === true
   );
 
   return {
     props: {
       session: JSON.parse(JSON.stringify(session)),
-      answer: JSON.parse(JSON.stringify(temp)),
+      attendance: {
+        attendance,
+        total_student,
+        number_attend: number_attend.length,
+        location_mean,
+        total_question,
+        ques_counter,
+        question_submission_rate,
+        question_correctness_rate,
+      },
     },
   };
 };
 
 // eslint-disable-next-line no-unused-vars
-function SessionPage({ session, answer }: any) {
-  // console.log(answer);
+function SessionPage({ session, attendance }: any) {
+  // console.log(attendance);
 
   const { user }: any = useAuth();
   const router = useRouter();
@@ -116,24 +225,27 @@ function SessionPage({ session, answer }: any) {
   const [endSessionCard, setEndSessionCard] = useState(0);
   const [addStudentCard, setAddStudentCard] = useState(0);
   const [searchValue, setSearchValue] = useState("");
-  const [students, setStudents] = useState<Student[] | [] | undefined>();
-
-  const filteredStudents = students?.filter(
-    (student) =>
-      // @ts-ignore
-      student?.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      student?.email.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const [open, setOpen] = useState([]);
+  const [sort, setSort] = useState(true);
+  const filteredStudents = !session?.end
+    ? session?.student?.filter((student: { email: string }) =>
+        // @ts-ignore
+        student?.email.toLowerCase().includes(searchValue.toLowerCase())
+      )
+    : attendance?.attendance
+        .filter((a: { email: string }) =>
+          // @ts-ignore
+          a?.email.toLowerCase().includes(searchValue.toLowerCase())
+        )
+        .sort((x: any, y: any) =>
+          sort ? (x === y ? 0 : x ? -1 : 1) : x === y ? 0 : x ? 1 : -1
+        );
 
   useEffect(() => {
     if (session?.email !== user.email) {
       router.push("/");
     }
   }, [router, session?.email, user.email]);
-
-  useEffect(() => {
-    setStudents(session?.student);
-  }, [session?.student]);
 
   return (
     <div>
@@ -164,24 +276,27 @@ function SessionPage({ session, answer }: any) {
                 <path d="M6.455 19L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455zm-.692-2H20V5H4v13.385L5.763 17zM11 10h2v2h-2v-2zm-4 0h2v2H7v-2zm8 0h2v2h-2v-2z" />
               </svg>
             </button>
-            <button
-              onClick={() => {
-                setEndSessionCard(1);
-              }}
-              className="p-2 transition-all duration-200 bg-white rounded-lg hover:bg-gray-200"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
+            {!session?.end && (
+              <button
+                onClick={() => {
+                  setEndSessionCard(1);
+                }}
+                className="p-2 transition-all duration-200 bg-white rounded-lg hover:bg-gray-200"
               >
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path d="M9 1v2h6V1h2v2h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4V1h2zm11 9H4v9h16v-9zm-4.964 1.136l1.414 1.414-4.95 4.95-3.536-3.536L9.38 12.55l2.121 2.122 3.536-3.536zM7 5H4v3h16V5h-3v1h-2V5H9v1H7V5z" />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path d="M9 1v2h6V1h2v2h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h4V1h2zm11 9H4v9h16v-9zm-4.964 1.136l1.414 1.414-4.95 4.95-3.536-3.536L9.38 12.55l2.121 2.122 3.536-3.536zM7 5H4v3h16V5h-3v1h-2V5H9v1H7V5z" />
+                </svg>
+              </button>
+            )}
             <ChatCard
               session_id={session?.id}
+              end={session?.end}
               chatCard={chatCard}
               setChatCard={setChatCard}
             />
@@ -206,7 +321,11 @@ function SessionPage({ session, answer }: any) {
               </svg>
             </div>
             <h4 className="font-medium">Total Students</h4>
-            <h2>{session?.student ? session?.student.length : "--"}</h2>
+            <h2>
+              {session?.end
+                ? attendance?.total_student
+                : session?.student?.length}
+            </h2>
           </div>
           <div className="w-full p-4 bg-white rounded-md">
             <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
@@ -221,7 +340,11 @@ function SessionPage({ session, answer }: any) {
               </svg>
             </div>
             <h4 className="font-medium">Present</h4>
-            <h2>{session?.student ? session?.student.length : "--"}</h2>
+            <h2>
+              {session?.end
+                ? attendance?.number_attend
+                : session?.student.length}
+            </h2>
           </div>
           <div className="w-full p-4 bg-white rounded-md">
             <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
@@ -236,12 +359,46 @@ function SessionPage({ session, answer }: any) {
               </svg>
             </div>
             <h4 className="font-medium">Absent</h4>
-            <h2>--</h2>
+            <h2>
+              {session?.end
+                ? attendance?.total_student - attendance?.number_attend
+                : "--"}
+            </h2>
           </div>
+          {session?.end && (
+            <div className="hidden col-span-1 p-4 bg-white rounded-md min-h-64 md:block md:col-span-2">
+              <BarChart
+                title1=" Submission Rate "
+                xAxis={attendance?.ques_counter}
+                yAxis1={attendance?.question_submission_rate}
+                title2=" Correctness Rate "
+                yAxis2={attendance?.question_correctness_rate}
+              />
+            </div>
+          )}
+          {session?.end && (
+            <div className="p-6 bg-white rounded-md">
+              <h4 className="mb-4 font-semibold text-center">
+                Student Avg. Location Distribution
+              </h4>
+              <div className="flex items-center justify-center w-full mt-5 dark:text-gray-50">
+                <div className="flex items-center justify-center w-32">
+                  <CircularProgressBar
+                    percentage={
+                      Math.round(
+                        (Number(attendance?.location_mean) + Number.EPSILON) *
+                          100
+                      ) / 100
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div
           className={
-            session.end
+            session?.end
               ? "w-full gap-10 my-10 md:grid-cols-3"
               : "grid w-full gap-10 my-10 md:grid-cols-3"
           }
@@ -255,9 +412,12 @@ function SessionPage({ session, answer }: any) {
                 placeholder="Search"
                 onChange={(e) => setSearchValue(e.target.value)}
               />
-              {session.end ? (
+              {session?.end ? (
                 <div>
-                  <button className="p-3 text-black transition-all duration-200 bg-white border rounded-lg hover:bg-gray-200">
+                  <button
+                    onClick={() => setSort((prev) => !prev)}
+                    className="p-3 text-black transition-all duration-200 bg-white border rounded-lg hover:bg-gray-200"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
@@ -296,25 +456,111 @@ function SessionPage({ session, answer }: any) {
             <div className="space-y-4">
               {filteredStudents && filteredStudents.length !== 0 ? (
                 <div>
-                  {filteredStudents.map((s: Student) => (
-                    <div key={s.id} className="mb-4">
-                      <a
-                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${s.email}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <div className="grid grid-cols-3 gap-5 p-4 transition-all duration-150 bg-white rounded-md hover:bg-gray-100">
-                          <div className="py-1 overflow-hidden whitespace-nowrap">
-                            {s.name}
-                          </div>
-                          <div className="py-1 overflow-hidden">{s.email}</div>
-                          <div className="flex justify-end">
-                            <div className="px-3 py-1 overflow-hidden bg-green-200 rounded">
-                              active
+                  {filteredStudents.map((s: Student | any) => (
+                    <div key={s.email} className="mb-4">
+                      {session?.end ? (
+                        <div>
+                          <div className="grid grid-cols-2 gap-5 p-4 transition-all duration-150 bg-white rounded-md">
+                            <div className="py-2 overflow-hidden">
+                              {s.email}
+                            </div>
+                            <div className="flex justify-end space-x-1">
+                              <div
+                                className={`px-3 py-2 overflow-hidden rounded ${
+                                  s.attend ? "bg-green-200" : "bg-red-200"
+                                }`}
+                              >
+                                {s.attend ? "present" : "absent"}
+                              </div>
+
+                              <a
+                                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${s.email}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <div
+                                  className={`hidden sm:inline-flex px-3 py-2 transition-all duration-200 overflow-hidden rounded items-center h-full ${
+                                    s.attend
+                                      ? `bg-green-50 hover:bg-green-100`
+                                      : "bg-red-50 hover:bg-red-100"
+                                  }`}
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    width="18"
+                                    height="18"
+                                    className="text-gray-600"
+                                  >
+                                    <path fill="none" d="M0 0h24v24H0z" />
+                                    <path
+                                      fill="currentColor"
+                                      d="M3 3h18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm17 4.238l-7.928 7.1L4 7.216V19h16V7.238zM4.511 5l7.55 6.662L19.502 5H4.511z"
+                                    />
+                                  </svg>
+                                </div>
+                              </a>
+                              <div
+                                onClick={() => {
+                                  if (
+                                    open.findIndex((x) => x === s?.email) === -1
+                                  ) {
+                                    // @ts-ignore
+                                    setOpen([...open, s?.email]);
+                                  } else {
+                                    setOpen(
+                                      open?.filter((y) => y !== s?.email)
+                                    );
+                                  }
+                                }}
+                                className={`cursor-pointer px-3 py-2 overflow-hidden rounded transition-all duration-200 flex items-center ${
+                                  s.attend
+                                    ? `bg-green-50 hover:bg-green-100`
+                                    : "bg-red-50 hover:bg-red-100"
+                                }`}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  width="18"
+                                  height="18"
+                                  className="text-gray-600"
+                                >
+                                  <path fill="none" d="M0 0h24v24H0z" />
+                                  <path
+                                    fill="currentColor"
+                                    d="M12 16l-6-6h12z"
+                                  />
+                                </svg>
+                              </div>
                             </div>
                           </div>
+                          {open?.findIndex((x) => x === s?.email) !== -1 && (
+                            <div
+                              className={`p-4 mt-3 rounded-md select-none bg-white`}
+                            >
+                              dfsa
+                            </div>
+                          )}
                         </div>
-                      </a>
+                      ) : (
+                        <a
+                          href={`https://mail.google.com/mail/?view=cm&fs=1&to=${s.email}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <div className="grid grid-cols-2 gap-5 p-4 transition-all duration-150 bg-white rounded-md hover:bg-gray-100">
+                            <div className="py-2 overflow-hidden">
+                              {s.email}
+                            </div>
+                            <div className="flex justify-end space-x-2">
+                              <div className="px-3 py-2 overflow-hidden bg-green-200 rounded">
+                                active
+                              </div>
+                            </div>
+                          </div>
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -338,7 +584,7 @@ function SessionPage({ session, answer }: any) {
               )}
             </div>
           </div>
-          {session.end ? (
+          {session?.end ? (
             <div></div>
           ) : (
             <div className="w-full md:col-span-1">
