@@ -25,7 +25,7 @@ export default function Sidebar() {
         </Link>
         <Link href="/">
           <a>
-            <div className="p-2 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
+            <div className="p-2 mb-4 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -38,29 +38,39 @@ export default function Sidebar() {
             </div>
           </a>
         </Link>
-        <div className="p-2 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path d="M20 22H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zm-1-2V4H5v16h14zM8 7h8v2H8V7zm0 4h8v2H8v-2zm0 4h5v2H8v-2z" />
-          </svg>
-        </div>
-        <div className="p-2 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-          >
-            <path fill="none" d="M0 0h24v24H0z" />
-            <path d="M4 5v14h16V7h-8.414l-2-2H4zm8.414 0H21a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h7.414l2 2z" />
-          </svg>
-        </div>
-        <div className="p-2 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
+        <Link href="/history">
+          <a>
+            <div className="p-2 mb-4 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path d="M20 22H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zm-1-2V4H5v16h14zM8 7h8v2H8V7zm0 4h8v2H8v-2zm0 4h5v2H8v-2z" />
+              </svg>
+            </div>
+          </a>
+        </Link>
+        <Link href="/question">
+          <a>
+            <div className="p-2 mb-4 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+              >
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path d="M4 5v14h16V7h-8.414l-2-2H4zm8.414 0H21a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h7.414l2 2z" />
+              </svg>
+            </div>
+          </a>
+        </Link>
+        {/* <Link href="/">
+          <a> */}
+        <div className="p-2 mb-4 transition-all duration-200 rounded-md cursor-pointer hover:bg-black hover:bg-opacity-5 hover:shadow-md">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -71,6 +81,8 @@ export default function Sidebar() {
             <path d="M17 2v2h3.007c.548 0 .993.445.993.993v16.014c0 .548-.445.993-.993.993H3.993C3.445 22 3 21.555 3 21.007V4.993C3 4.445 3.445 4 3.993 4H7V2h10zM7 6H5v14h14V6h-2v2H7V6zm2 10v2H7v-2h2zm0-3v2H7v-2h2zm0-3v2H7v-2h2zm6-6H9v2h6V4z" />
           </svg>
         </div>
+        {/* </a>
+        </Link> */}
       </div>
       <div className="mb-4 space-y-4">
         {user?.photoURL ? (

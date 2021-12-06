@@ -46,6 +46,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
           location: true,
         },
       },
+      feedback: true,
     },
   });
 
@@ -56,7 +57,6 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       },
     };
   }
-
   const total_student = session?.student?.length;
   const total_question = session?.quiz?.question?.length;
   const ques_counter = Array.from(
@@ -66,6 +66,30 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const attendance: any = [];
   const question_submission_rate: any[] = [];
   const question_correctness_rate: any[] = [];
+  const feedback_mean =
+    session?.feedback?.reduce(
+      (a: any, b: { rating: any }) => a + Number(b?.rating),
+      0
+    ) / session?.feedback?.length;
+
+  if (total_student === 0) {
+    return {
+      props: {
+        session: JSON.parse(JSON.stringify(session)),
+        attendance: {
+          attendance,
+          total_student,
+          number_attend: 0,
+          location_mean: 0,
+          total_question,
+          ques_counter,
+          question_submission_rate,
+          question_correctness_rate,
+        },
+      },
+    };
+  }
+
   session?.quiz?.question?.map(
     (ques: { answer: any[]; answerScheme: string }) => {
       question_submission_rate.push(
@@ -209,6 +233,8 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
         ques_counter,
         question_submission_rate,
         question_correctness_rate,
+        feedback_mean,
+        feedback_number: session?.feedback?.length,
       },
     },
   };
@@ -216,8 +242,6 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
 
 // eslint-disable-next-line no-unused-vars
 function SessionPage({ session, attendance }: any) {
-  // console.log(attendance);
-
   const { user }: any = useAuth();
   const router = useRouter();
   const [questionCard, setQuestionCard] = useState(0);
@@ -307,7 +331,11 @@ function SessionPage({ session, attendance }: any) {
             />
           </div>
         </div>
-        <div className="grid w-full gap-5 md:grid-cols-3">
+        <div
+          className={`grid w-full gap-5 ${
+            session?.end ? "lg:grid-cols-4" : "md:grid-cols-3"
+          }`}
+        >
           <div className="w-full p-4 bg-white rounded-md">
             <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
               <svg
@@ -366,7 +394,24 @@ function SessionPage({ session, attendance }: any) {
             </h2>
           </div>
           {session?.end && (
-            <div className="hidden col-span-1 p-4 bg-white rounded-md min-h-64 md:block md:col-span-2">
+            <div className="w-full p-4 bg-white rounded-md">
+              <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                >
+                  <path fill="none" d="M0 0h24v24H0z" />
+                  <path d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm7 6.586l2.121-2.122 1.415 1.415L20.414 19l2.122 2.121-1.415 1.415L19 20.414l-2.121 2.122-1.415-1.415L17.586 19l-2.122-2.121 1.415-1.415L19 17.586z" />
+                </svg>
+              </div>
+              <h4 className="font-medium">Total Feedback</h4>
+              <h2>{attendance?.feedback_number}</h2>
+            </div>
+          )}
+          {session?.end && (
+            <div className="hidden col-span-1 p-4 bg-white rounded-md min-h-64 lg:block lg:col-span-2">
               <BarChart
                 title1=" Submission Rate "
                 xAxis={attendance?.ques_counter}
@@ -377,7 +422,7 @@ function SessionPage({ session, attendance }: any) {
             </div>
           )}
           {session?.end && (
-            <div className="p-6 bg-white rounded-md">
+            <div className="flex flex-col items-center justify-between p-6 bg-white rounded-md">
               <h4 className="mb-4 font-semibold text-center">
                 Student Avg. Location Distribution
               </h4>
@@ -395,6 +440,24 @@ function SessionPage({ session, attendance }: any) {
               </div>
             </div>
           )}
+          {session?.end && (
+            <div className="flex flex-col items-center justify-between p-6 bg-white rounded-md">
+              <h4 className="mb-4 font-semibold text-center">Feedback Score</h4>
+              <div className="flex items-center justify-center w-full mt-5 dark:text-gray-50">
+                <div className="flex items-center justify-center w-32">
+                  <CircularProgressBar
+                    percentage={
+                      Math.round(
+                        ((Number(attendance?.feedback_mean) / 5) * 100 +
+                          Number.EPSILON) *
+                          100
+                      ) / 100
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <div
           className={
@@ -403,7 +466,7 @@ function SessionPage({ session, attendance }: any) {
               : "grid w-full gap-10 my-10 md:grid-cols-3"
           }
         >
-          <div className="md:col-span-2">
+          <div className="mt-5 md:col-span-2">
             <h3 className="mb-5 font-bold">Student List</h3>
             <div className="flex mb-10">
               <input
@@ -537,9 +600,71 @@ function SessionPage({ session, attendance }: any) {
                           </div>
                           {open?.findIndex((x) => x === s?.email) !== -1 && (
                             <div
-                              className={`p-4 mt-3 rounded-md select-none bg-white`}
+                              className={`p-6 grid md:grid-cols-3 gap-10 mt-3 rounded-md select-none bg-white`}
                             >
-                              dfsa
+                              <div className="flex flex-col items-center">
+                                <h5 className="mb-4 font-semibold">
+                                  Submission rate
+                                </h5>
+                                <div className="w-36">
+                                  <CircularProgressBar
+                                    percentage={
+                                      Math.round(
+                                        (Number(s?.submission_rate) +
+                                          Number.EPSILON) *
+                                          100
+                                      ) / 100
+                                    }
+                                    pathColor={
+                                      s?.submission_rate !== 100
+                                        ? "#FEE2E2"
+                                        : "#D1FAE5"
+                                    }
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-center">
+                                <h5 className="mb-4 font-semibold">
+                                  Correctness rate
+                                </h5>
+                                <div className="w-36">
+                                  <CircularProgressBar
+                                    percentage={
+                                      Math.round(
+                                        (Number(s?.correctness_rate) +
+                                          Number.EPSILON) *
+                                          100
+                                      ) / 100
+                                    }
+                                    pathColor={
+                                      s?.correctness_rate !== 100
+                                        ? "#FEE2E2"
+                                        : "#D1FAE5"
+                                    }
+                                    // trailColor={
+                                    //   s?.correctness_rate !== 100
+                                    //     ? "#FEF2F2"
+                                    //     : "#ECFDF5"
+                                    // }
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-center">
+                                <h5 className="mb-4 font-semibold">
+                                  Location std
+                                </h5>
+                                <div className="w-36">
+                                  <CircularProgressBar
+                                    percentage={
+                                      Math.round(
+                                        (Number(s?.location_std) +
+                                          Number.EPSILON) *
+                                          100
+                                      ) / 100
+                                    }
+                                  />
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -608,6 +733,7 @@ function SessionPage({ session, attendance }: any) {
                   </svg>
                 </button>
                 <CreateQuestionCard
+                  email={user?.email}
                   session_id={session?.id}
                   questionCard={questionCard}
                   setQuestionCard={setQuestionCard}

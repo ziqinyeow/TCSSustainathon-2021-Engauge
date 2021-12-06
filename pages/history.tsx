@@ -1,30 +1,40 @@
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { withProtected } from "../firebase/auth/hook/route";
 import Layout from "../layouts/Layout";
-import CreateSessionCard from "@/components/CreateSessionCard";
-import useSWR from "swr";
-import fetcher from "@/lib/fetcher";
+import { Session } from ".prisma/client";
 import useAuth from "../firebase/auth/hook/auth";
 
 function Home() {
   const { user }: any = useAuth();
   const [searchValue, setSearchValue] = useState("");
-  const [sessionCard, setSessionCard] = useState(0);
+  const [sessions, setSessions] = useState<Session[]>();
 
-  const { data } = useSWR(`/api/db/session/get?email=${user.email}`, fetcher);
-
-  const filteredSessions = data?.session
+  const filteredSessions = sessions
     ?.sort(
-      (
-        a: { startedAt: string | number | Date },
-        b: { startedAt: string | number | Date }
-      ) => Number(new Date(b.startedAt)) - Number(new Date(a.startedAt))
+      (a, b) => Number(new Date(b.startedAt)) - Number(new Date(a.startedAt))
     )
-    .filter((session: { class_code: string }) =>
+    .filter((session) =>
       session.class_code.toLowerCase().includes(searchValue.toLowerCase())
     );
+  //   console.log(filteredSessions);
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      const fetcher = await fetch("/api/db/session/get", {
+        method: "POST",
+        body: JSON.stringify({ email: user.email, end: true }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const result = await fetcher.json();
+
+      setSessions(result.ended_session);
+    };
+    fetchSessions();
+  }, [user.email]);
 
   return (
     <div>
@@ -39,35 +49,14 @@ function Home() {
         <div className="w-full mt-10">
           <div className="w-full">
             <div className="flex mb-5">
-              <h3 className="w-full font-bold">Active Session</h3>
+              <h3 className="w-full font-bold">Ended Session</h3>
             </div>
             <div className="flex mb-3">
               <input
                 type="text"
-                className="w-full px-4 py-2 mr-4 transition-all duration-200 border rounded-lg hover:bg-gray-100 focus:bg-gray-100"
+                className="w-full px-4 py-2 transition-all duration-200 border rounded-lg hover:bg-gray-100 focus:bg-gray-100"
                 placeholder="Search"
                 onChange={(e) => setSearchValue(e.target.value)}
-              />
-              <button
-                onClick={() => setSessionCard(1)}
-                className="px-4 py-2 text-white transition-all duration-200 bg-black border-2 border-black rounded-lg hover:bg-white hover:text-black"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path
-                    fill="currentColor"
-                    d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"
-                  />
-                </svg>
-              </button>
-              <CreateSessionCard
-                sessionCard={sessionCard}
-                setSessionCard={setSessionCard}
               />
             </div>
             <div className="flex justify-end w-full mb-10 text-gray-400">
@@ -79,7 +68,7 @@ function Home() {
             <div className="">
               {filteredSessions && filteredSessions.length !== 0 ? (
                 <div>
-                  {filteredSessions?.map((session: any) => (
+                  {filteredSessions?.map((session) => (
                     <Link key={session.id} href={`/session/${session.id}`}>
                       <a>
                         <div className="p-6 mb-4 transition-all duration-200 bg-white rounded hover:bg-gray-100">
@@ -127,7 +116,7 @@ function Home() {
                       d="M14.997 2L21 8l.001 4.26A5.466 5.466 0 0 0 17.5 11l-.221.004a5.503 5.503 0 0 0-5.127 4.205l-.016.074-.03.02A4.75 4.75 0 0 0 10.878 22L3.993 22a.993.993 0 0 1-.986-.876L3 21.008V2.992c0-.498.387-.927.885-.985L4.002 2h10.995zM17.5 13a3.5 3.5 0 0 1 3.5 3.5l-.001.103a2.75 2.75 0 0 1-.581 5.392L20.25 22h-5.5l-.168-.005a2.75 2.75 0 0 1-.579-5.392L14 16.5a3.5 3.5 0 0 1 3.5-3.5z"
                     />
                   </svg>
-                  <h4 className="font-bold">No active session</h4>
+                  <h4 className="font-bold">No result</h4>
                 </div>
               )}
             </div>

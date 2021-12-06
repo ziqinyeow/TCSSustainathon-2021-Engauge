@@ -1,10 +1,9 @@
-// Create a chatroom with a name for a session
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
-import { Feedback } from ".prisma/client";
+import { Teacherques } from ".prisma/client";
 
 interface Data {
-  feedback?: Feedback;
+  question?: Teacherques;
   message?: string;
 }
 
@@ -17,25 +16,29 @@ export default async function handler(
   }
 
   try {
-    const feedback: Feedback = await prisma.feedback.create({
+    const question: Teacherques = await prisma.teacherques.create({
       data: {
-        rating: Number(req.body.rating),
-        text: req.body.text,
-        session: {
+        question: req.body.question,
+        class_code: req.body.class_code,
+        answerScheme: req.body.answerScheme,
+        url: req.body.url,
+        teacher: {
           connect: {
-            id: req.body.session_id,
+            email: req.body.email,
           },
         },
       },
     });
-    return res.status(200).json({ feedback });
+    return res.status(200).json({ question });
   } catch (error) {
     return res.status(400).json({ message: "error" });
   }
 }
 
 // {
-//      "session_id": "",
-//      "rating":
-//      "text": ""
+//     "email": "",
+//     "url": "",
+//     "class_code": "",
+//      "question": "",
+//      "answerScheme": ""
 // }

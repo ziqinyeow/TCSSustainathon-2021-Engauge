@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
-import { Question } from ".prisma/client";
+import { Teacherques } from ".prisma/client";
 
 interface Data {
-  question?: Question;
+  question?: Teacherques[];
   message?: string;
 }
 
@@ -11,20 +11,16 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  if (req.method !== "POST") {
-    return res.status(400).json({ message: "Invalid" });
-  }
+  // if (req.method !== "POST") {
+  //   return res.status(400).json({ message: "Invalid" });
+  // }
 
   try {
-    const question: Question = await prisma.question.create({
-      data: {
-        question: req.body.question,
-        answerScheme: req.body.answerScheme,
-        url: req.body.url,
-        quiz: {
-          connect: {
-            session_id: req.body.session_id,
-          },
+    const question: Teacherques[] = await prisma.teacherques.findMany({
+      where: {
+        teacher: {
+          // @ts-ignore
+          email: req.query.email,
         },
       },
     });
@@ -38,7 +34,8 @@ export default async function handler(
 
 // {
 //     "session_id": "",
-//      "url": "",
+//     "email": "",
+//     "url": "",
 //      "question": "",
 //      "answerScheme": ""
 // }

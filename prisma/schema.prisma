@@ -13,10 +13,11 @@ datasource db {
 }
 
 model Teacher {
-  id      String    @id @default(cuid())
-  name    String?
-  email   String    @unique
-  session Session[]
+  id       String        @id @default(cuid())
+  name     String?
+  email    String        @unique
+  session  Session[]
+  question Teacherques[]
 }
 
 model Student {
@@ -47,14 +48,15 @@ model Session {
   description String?
   startedAt   DateTime   @default(now())
   createdAt   DateTime   @default(now())
+  endedAt     DateTime?
   teacher     Teacher    @relation(fields: [email], references: [email])
   email       String
   student     Student[]
-  Location    Location[]
+  location    Location[]
   quiz        Quiz?
   chat        Chatroom?
   end         Boolean    @default(false)
-  Feedback    Feedback[]
+  feedback    Feedback[]
 }
 
 model Quiz {
@@ -70,11 +72,24 @@ model Question {
   id           String    @id @default(cuid())
   question     String
   answerScheme String
+  url          String?
   createdAt    DateTime  @default(now())
   realisedAt   DateTime?
   quiz         Quiz?     @relation(fields: [session_id], references: [session_id])
   session_id   String?
   answer       Answer[] // this is the answer given by student
+}
+
+model Teacherques {
+  id            String    @id @default(cuid())
+  class_code    String
+  question      String
+  answerScheme  String
+  url           String?
+  createdAt     DateTime  @default(now())
+  realisedAt    DateTime?
+  teacher       Teacher   @relation(fields: [teacher_email], references: [email])
+  teacher_email String
 }
 
 model Answer {
@@ -105,7 +120,7 @@ model Message {
 
 model Feedback {
   id         String  @id @default(cuid())
-  rating     Int
+  rating     Decimal
   text       String
   session    Session @relation(fields: [session_id], references: [id])
   session_id String

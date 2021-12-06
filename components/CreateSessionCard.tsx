@@ -1,15 +1,13 @@
 import { Session } from ".prisma/client";
 import useAuth from "../firebase/auth/hook/auth";
-import { useRouter } from "next/router";
 import { ChangeEvent, FormEvent, useState } from "react";
+import { useRouter } from "next/router";
 
 const Card = ({ sessionCard, setSessionCard }: any) => {
   const router = useRouter();
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
   const { user }: any = useAuth();
   const [form, setForm] = useState<Session>();
+  const [creating, setCreating] = useState(false);
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -23,9 +21,9 @@ const Card = ({ sessionCard, setSessionCard }: any) => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSessionCard(0);
+    setCreating(true);
 
-    await fetch("/api/db/session/create", {
+    const fetcher = await fetch("/api/db/session/create", {
       method: "POST",
       body: JSON.stringify({
         session: form,
@@ -35,7 +33,10 @@ const Card = ({ sessionCard, setSessionCard }: any) => {
         "Content-Type": "application/json",
       },
     });
-    refreshData();
+    const result = await fetcher.json();
+    setCreating(false);
+    setSessionCard(0);
+    router.push(`/session/${result?.session?.id}`);
   };
   return (
     <div>
@@ -91,23 +92,18 @@ const Card = ({ sessionCard, setSessionCard }: any) => {
                 // required
                 autoComplete="off"
               />
-              {/* <h5 className="mb-2 font-semibold">Session Description:</h5>
-              <textarea
-                placeholder="Describe..."
-                className="w-full px-4 py-2 mb-8 border rounded-md focus:outline-none focus:border-gray-400"
-                name="description"
-                onChange={handleChange}
-              /> */}
               <div className="flex justify-end w-full gap-5">
                 <button
                   type="submit"
-                  className="px-5 py-2 font-medium text-white transition-all duration-150 bg-black border-2 border-black rounded-md hover:bg-white hover:text-black"
+                  disabled={creating}
+                  className="px-5 py-2 font-medium text-white transition-all duration-150 bg-black border-2 border-black rounded-md disabled:opacity-20 disabled:hover:bg-black disabled:hover:text-white hover:bg-white hover:text-black"
                 >
                   Create
                 </button>
                 <button
                   type="button"
-                  className="px-5 py-2 font-medium text-red-500 transition-all duration-150 bg-white border-2 border-red-500 rounded-md hover:bg-red-500 hover:text-white"
+                  disabled={creating}
+                  className="px-5 py-2 font-medium text-red-500 transition-all duration-150 bg-white border-2 border-red-500 rounded-md disabled:opacity-20 disabled:hover:bg-white disabled:hover:text-red-500 hover:bg-red-500 hover:text-white"
                   onClick={() => {
                     setSessionCard(0);
                   }}

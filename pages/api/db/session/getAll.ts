@@ -41,6 +41,7 @@ export default async function handler(
             location: true,
           },
         },
+        feedback: true,
       },
     });
     return res.status(200).json({ session });
