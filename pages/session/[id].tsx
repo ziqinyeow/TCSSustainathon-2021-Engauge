@@ -169,7 +169,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
 
   const location: any = [];
   const average = (array: any[]) =>
-    array.reduce((a: any, b: any) => a + b) / array.length;
+    array.reduce((a: any, b: any) => a + b, 0) / array.length;
 
   const loc_temp: any = [];
   session?.location?.map((loc: any) => {
@@ -415,21 +415,25 @@ function SessionPage({ session, attendance }: any) {
             </h2>
           </div>
           {session?.end && (
-            <div className="w-full p-4 bg-white rounded-md">
-              <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                >
-                  <path fill="none" d="M0 0h24v24H0z" />
-                  <path d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm7 6.586l2.121-2.122 1.415 1.415L20.414 19l2.122 2.121-1.415 1.415L19 20.414l-2.121 2.122-1.415-1.415L17.586 19l-2.122-2.121 1.415-1.415L19 17.586z" />
-                </svg>
-              </div>
-              <h4 className="font-medium">Total Feedback</h4>
-              <h2>{attendance?.feedback_number}</h2>
-            </div>
+            <Link href={`/feedback/${session?.id}`}>
+              <a>
+                <div className="w-full p-4 bg-white rounded-md">
+                  <div className="p-3 mb-3 rounded-md bg-gray-50 w-min">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      height="24"
+                    >
+                      <path fill="none" d="M0 0h24v24H0z" />
+                      <path d="M14 14.252v2.09A6 6 0 0 0 6 22l-2-.001a8 8 0 0 1 10-7.748zM12 13c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm7 6.586l2.121-2.122 1.415 1.415L20.414 19l2.122 2.121-1.415 1.415L19 20.414l-2.121 2.122-1.415-1.415L17.586 19l-2.122-2.121 1.415-1.415L19 17.586z" />
+                    </svg>
+                  </div>
+                  <h4 className="font-medium">Total Feedback</h4>
+                  <h2>{attendance?.feedback_number}</h2>
+                </div>
+              </a>
+            </Link>
           )}
           {session?.end && (
             <div className="hidden col-span-1 p-4 bg-white rounded-md min-h-64 lg:block lg:col-span-2">
@@ -462,22 +466,28 @@ function SessionPage({ session, attendance }: any) {
             </div>
           )}
           {session?.end && (
-            <div className="flex flex-col items-center justify-between p-6 bg-white rounded-md">
-              <h4 className="mb-4 font-semibold text-center">Feedback Score</h4>
-              <div className="flex items-center justify-center w-full mt-5 dark:text-gray-50">
-                <div className="flex items-center justify-center w-32">
-                  <CircularProgressBar
-                    percentage={
-                      Math.round(
-                        ((Number(attendance?.feedback_mean) / 5) * 100 +
-                          Number.EPSILON) *
-                          100
-                      ) / 100
-                    }
-                  />
+            <Link href={`/feedback/${session?.id}`}>
+              <a className="flex flex-col items-center justify-between p-6 bg-white rounded-md">
+                {/* <div className=""> */}
+                <h4 className="mb-4 font-semibold text-center">
+                  Feedback Score
+                </h4>
+                <div className="flex items-center justify-center w-full mt-5 dark:text-gray-50">
+                  <div className="flex items-center justify-center w-32">
+                    <CircularProgressBar
+                      percentage={
+                        Math.round(
+                          ((Number(attendance?.feedback_mean) / 5) * 100 +
+                            Number.EPSILON) *
+                            100
+                        ) / 100
+                      }
+                    />
+                  </div>
+                  {/* </div> */}
                 </div>
-              </div>
-            </div>
+              </a>
+            </Link>
           )}
         </div>
         <div
