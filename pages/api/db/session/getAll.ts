@@ -36,12 +36,9 @@ export default async function handler(
             message: true,
           },
         },
-        student: {
-          include: {
-            location: true,
-          },
-        },
+        student: true,
         feedback: true,
+        location: true,
       },
     });
     return res.status(200).json({ session });

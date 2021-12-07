@@ -21,14 +21,10 @@ export default async function handler(
       data: {
         lattitude: req.body.lattitude,
         longitude: req.body.longitude,
+        email: req.body.email,
         session: {
           connect: {
             id: req.body.session_id,
-          },
-        },
-        student: {
-          connect: {
-            email: req.body.email,
           },
         },
       },

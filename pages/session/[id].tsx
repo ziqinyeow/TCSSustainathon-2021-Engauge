@@ -41,11 +41,8 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
           message: true,
         },
       },
-      student: {
-        include: {
-          location: true,
-        },
-      },
+      student: true,
+      location: true,
       feedback: true,
     },
   });
@@ -174,7 +171,30 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
   const average = (array: any[]) =>
     array.reduce((a: any, b: any) => a + b) / array.length;
 
-  session?.student?.map((stu: { location: any[]; email: any }) => {
+  const loc_temp: any = [];
+  session?.location?.map((loc: any) => {
+    if (loc_temp.findIndex((l: any) => l?.email === loc?.email) === -1) {
+      loc_temp.push({
+        email: loc?.email,
+        location: [
+          {
+            lattitude: loc?.lattitude,
+            longitude: loc?.longitude,
+          },
+        ],
+      });
+    } else {
+      const idx = loc_temp.findIndex(
+        (x: { email: any }) => x?.email === loc?.email
+      );
+      loc_temp[idx]?.location.push({
+        lattitude: loc?.lattitude,
+        longitude: loc?.longitude,
+      });
+    }
+  });
+
+  loc_temp?.map((stu: { location: any[]; email: any }) => {
     const location_std = std(stu?.location);
     if (location_std !== -1) {
       location.push(location_std);
@@ -796,7 +816,7 @@ function SessionPage({ session, attendance }: any) {
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center w-full min-h-[288px] p-6 space-y-2 text-gray-600 bg-white rounded-md">
+                  <div className="flex flex-col items-center justify-center w-full min-h-[315px] p-6 space-y-2 text-gray-600 bg-white rounded-md">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"

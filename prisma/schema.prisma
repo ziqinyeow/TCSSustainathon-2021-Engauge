@@ -21,22 +21,20 @@ model Teacher {
 }
 
 model Student {
-  id         String     @id @default(cuid())
+  id         String    @id @default(cuid())
   name       String?
-  email      String     @unique
+  email      String    @unique
   password   String?
   answer     Answer[]
-  session    Session[]  @relation(fields: [session_id], references: [id])
+  session    Session[] @relation(fields: [session_id], references: [id])
   session_id String?
-  location   Location[]
 }
 
 model Location {
   id         String   @id @default(cuid())
   longitude  String?
   lattitude  String?
-  student    Student? @relation(fields: [student_id], references: [id])
-  student_id String?
+  email      String
   session    Session? @relation(fields: [session_id], references: [id])
   session_id String?
 }
