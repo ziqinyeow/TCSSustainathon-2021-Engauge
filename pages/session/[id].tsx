@@ -230,7 +230,8 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       q.submission_rate = (q?.submit / session?.quiz?.question?.length) * 100;
       q.correctness_rate = (q?.correct / q?.submit) * 100;
       q.attend =
-        (q?.location_std < 0.001 && q?.location_std > -1) ||
+        q?.location_std < 0.001 &&
+        q?.location_std > -1 &&
         q?.submission_rate === 100
           ? true
           : false;
