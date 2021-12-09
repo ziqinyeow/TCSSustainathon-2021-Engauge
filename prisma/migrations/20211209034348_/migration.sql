@@ -23,7 +23,7 @@ CREATE TABLE "Location" (
     "id" TEXT NOT NULL,
     "longitude" TEXT,
     "lattitude" TEXT,
-    "student_id" TEXT,
+    "email" TEXT NOT NULL,
     "session_id" TEXT,
 
     CONSTRAINT "Location_pkey" PRIMARY KEY ("id")
@@ -37,6 +37,7 @@ CREATE TABLE "Session" (
     "description" TEXT,
     "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "endedAt" TIMESTAMP(3),
     "email" TEXT NOT NULL,
     "end" BOOLEAN NOT NULL DEFAULT false,
 
@@ -58,6 +59,7 @@ CREATE TABLE "Question" (
     "id" TEXT NOT NULL,
     "question" TEXT NOT NULL,
     "answerScheme" TEXT NOT NULL,
+    "url" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "realisedAt" TIMESTAMP(3),
     "session_id" TEXT,
@@ -66,12 +68,26 @@ CREATE TABLE "Question" (
 );
 
 -- CreateTable
+CREATE TABLE "Teacherques" (
+    "id" TEXT NOT NULL,
+    "class_code" TEXT NOT NULL,
+    "question" TEXT NOT NULL,
+    "answerScheme" TEXT NOT NULL,
+    "url" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "realisedAt" TIMESTAMP(3),
+    "teacher_email" TEXT NOT NULL,
+
+    CONSTRAINT "Teacherques_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Answer" (
     "id" TEXT NOT NULL,
     "answer" TEXT NOT NULL,
     "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "question_id" TEXT,
-    "student_id" TEXT,
+    "student_email" TEXT,
 
     CONSTRAINT "Answer_pkey" PRIMARY KEY ("id")
 );
@@ -98,7 +114,7 @@ CREATE TABLE "Message" (
 -- CreateTable
 CREATE TABLE "Feedback" (
     "id" TEXT NOT NULL,
-    "rating" INTEGER NOT NULL,
+    "rating" DECIMAL(65,30) NOT NULL,
     "text" TEXT NOT NULL,
     "session_id" TEXT NOT NULL,
 
@@ -133,9 +149,6 @@ CREATE INDEX "_SessionToStudent_B_index" ON "_SessionToStudent"("B");
 ALTER TABLE "Student" ADD CONSTRAINT "Student_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "Session"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Location" ADD CONSTRAINT "Location_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Location" ADD CONSTRAINT "Location_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "Session"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -148,10 +161,13 @@ ALTER TABLE "Quiz" ADD CONSTRAINT "Quiz_session_id_fkey" FOREIGN KEY ("session_i
 ALTER TABLE "Question" ADD CONSTRAINT "Question_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "Quiz"("session_id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Teacherques" ADD CONSTRAINT "Teacherques_teacher_email_fkey" FOREIGN KEY ("teacher_email") REFERENCES "Teacher"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Answer" ADD CONSTRAINT "Answer_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "Question"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Answer" ADD CONSTRAINT "Answer_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Answer" ADD CONSTRAINT "Answer_student_email_fkey" FOREIGN KEY ("student_email") REFERENCES "Student"("email") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Chatroom" ADD CONSTRAINT "Chatroom_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "Session"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
